@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linha do Tempo — Fraude à Execução · Dirceu Bergamin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --bg2: #161b27;
+    --surface: #1e2535;
+    --surface2: #252d40;
+    --border: #2e3a52;
+    --border2: #3d4f6e;
+    --text: #e8eaf0;
+    --muted: #8a95a8;
+    --dim: #566070;
+    --blue: #4a9eff;
+    --blue-bg: rgba(74,158,255,0.10);
+    --blue-border: rgba(74,158,255,0.25);
+    --red: #ff6b6b;
+    --red-bg: rgba(255,107,107,0.10);
+    --red-border: rgba(255,107,107,0.25);
+    --green: #4ecb94;
+    --green-bg: rgba(78,203,148,0.10);
+    --green-border: rgba(78,203,148,0.25);
+    --amber: #f5a623;
+    --amber-bg: rgba(245,166,35,0.10);
+    --amber-border: rgba(245,166,35,0.25);
+    --purple: #a78bfa;
+    --purple-bg: rgba(167,139,250,0.10);
+    --purple-border: rgba(167,139,250,0.25);
+    --font: 'Inter', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+  /* Header */
+  header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 28px 40px 24px; position: sticky; top: 0; z-index: 100; }
+  .header-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .header-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--red); text-transform: uppercase; margin-bottom: 6px; }
+  header h1 { font-size: 18px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  header p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .totals { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+  .total-item { text-align: right; }
+  .total-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: var(--mono); }
+  .total-value { font-size: 16px; font-weight: 600; font-family: var(--mono); letter-spacing: -0.5px; }
+
+  /* Filters */
+  .filters-bar { max-width: 900px; margin: 0 auto; padding: 14px 40px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--border); }
+  .filter-btn { font-family: var(--font); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; }
+  .filter-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .filter-btn.active { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+  .filter-btn.f-alerta.active { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .filter-btn.f-soc.active { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .filter-btn.f-fraude.active { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .filter-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dp { background: var(--blue); }
+  .da { background: var(--red); }
+  .ds { background: var(--green); }
+  .df { background: var(--amber); }
+
+  /* Main */
+  main { max-width: 900px; margin: 0 auto; padding: 0 40px 80px; }
+
+  /* Fase banner */
+  .fase-banner {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; border-radius: 8px; margin: 20px 0 10px;
+    font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+    font-family: var(--mono);
+  }
+  .fase-1 { background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); }
+  .fase-2 { background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber); }
+  .fase-3 { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+  .fase-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* Year */
+  .year-block { margin-bottom: 4px; }
+  .year-header { display: flex; align-items: center; gap: 12px; padding: 16px 0 8px; }
+  .year-label { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; }
+  .year-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* Timeline */
+  .tl { position: relative; padding-left: 32px; }
+  .tl::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, transparent, var(--border) 40px, var(--border) calc(100% - 20px), transparent); }
+
+  /* Event */
+  .ev { position: relative; margin-bottom: 10px; transition: opacity .2s; }
+  .ev.hidden { display: none; }
+  .ev-dot { position: absolute; left: -29px; top: 18px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg); z-index: 2; transition: transform .15s; }
+  .ev:hover .ev-dot { transform: scale(1.3); }
+  .ev-dot.t-proc   { background: var(--blue);   box-shadow: 0 0 0 3px var(--blue-bg); }
+  .ev-dot.t-alerta { background: var(--red);    box-shadow: 0 0 0 3px var(--red-bg); }
+  .ev-dot.t-soc    { background: var(--green);  box-shadow: 0 0 0 3px var(--green-bg); }
+  .ev-dot.t-fraude { background: var(--amber);  box-shadow: 0 0 0 3px var(--amber-bg); }
+
+  .ev-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: border-color .15s, background .15s, transform .1s; position: relative; overflow: hidden; }
+  .ev-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; opacity: 0.8; }
+  .t-proc   .ev-card::before { background: var(--blue); }
+  .t-alerta .ev-card::before { background: var(--red); }
+  .t-soc    .ev-card::before { background: var(--green); }
+  .t-fraude .ev-card::before { background: var(--amber); }
+  .ev-card:hover { border-color: var(--border2); background: var(--surface2); transform: translateX(3px); }
+  .ev-card.expanded { border-color: var(--border2); background: var(--surface2); }
+  .t-proc   .ev-card.expanded { border-color: var(--blue-border); }
+  .t-alerta .ev-card.expanded { border-color: var(--red-border); }
+  .t-soc    .ev-card.expanded { border-color: var(--green-border); }
+  .t-fraude .ev-card.expanded { border-color: var(--amber-border); }
+
+  .ev-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .ev-meta { flex: 1; }
+  .ev-date { font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: .5px; margin-bottom: 4px; }
+  .ev-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 3px; }
+  .ev-proc { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .ev-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+  .ev-valor { font-family: var(--mono); font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
+  .v-blue  { background: var(--blue-bg);   color: var(--blue);   border: 1px solid var(--blue-border); }
+  .v-red   { background: var(--red-bg);    color: var(--red);    border: 1px solid var(--red-border); }
+  .v-green { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border); }
+  .v-amber { background: var(--amber-bg);  color: var(--amber);  border: 1px solid var(--amber-border); }
+  .ev-badge { font-size: 9px; padding: 2px 7px; border-radius: 4px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; white-space: nowrap; }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+  .badge-red   { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-border); }
+  .badge-blue  { background: var(--blue-bg);  color: var(--blue);  border: 1px solid var(--blue-border); }
+  .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .ev-chevron { color: var(--dim); font-size: 18px; line-height: 1; transition: transform .2s; align-self: center; flex-shrink: 0; margin-left: 4px; }
+  .ev-card.expanded .ev-chevron { transform: rotate(90deg); }
+
+  /* Detail */
+  .ev-detail { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+  .ev-detail.open { max-height: 800px; padding-top: 12px; }
+  .ev-detail-inner { border-top: 1px solid var(--border); padding-top: 12px; display: grid; gap: 8px; }
+  .detail-row { display: flex; gap: 8px; }
+  .detail-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; opacity: .55; }
+  .detail-text { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+  .detail-text strong { color: var(--text); font-weight: 500; }
+  .detail-alert { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 6px; padding: 8px 12px; font-size: 12px; color: var(--amber); line-height: 1.5; margin-top: 2px; }
+  .detail-danger { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 6px; padding: 8px 12px; font-size: 12px; color: var(--red); line-height: 1.5; margin-top: 2px; }
+
+  /* Summary */
+  .summary-box { margin-top: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; }
+  .summary-box h2 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .stat-label { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; font-family: var(--mono); margin-bottom: 4px; }
+  .stat-value { font-size: 18px; font-weight: 600; font-family: var(--mono); letter-spacing: -0.5px; }
+  .sv-red { color: var(--red); } .sv-blue { color: var(--blue); } .sv-green { color: var(--green); } .sv-amber { color: var(--amber); }
+  .alerta-list { border-top: 1px solid var(--border); padding-top: 14px; display: grid; gap: 10px; }
+  .alerta-item { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .alerta-num { font-family: var(--mono); font-size: 10px; color: var(--amber); min-width: 22px; margin-top: 2px; font-weight: 600; }
+
+  /* IDPJ box */
+  .idpj-box { margin-top: 20px; background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 10px; padding: 18px 20px; }
+  .idpj-box h3 { font-size: 12px; font-weight: 600; color: var(--red); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; font-family: var(--mono); }
+  .idpj-grid { display: grid; gap: 8px; }
+  .idpj-item { font-size: 12.5px; color: var(--muted); line-height: 1.5; display: flex; gap: 8px; }
+  .idpj-item strong { color: var(--text); font-weight: 500; }
+  .idpj-mark { color: var(--red); font-weight: 600; flex-shrink: 0; margin-top: 1px; }
+
+  /* Progress */
+  .progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(to right, var(--blue), var(--red)); z-index: 999; transition: width .1s; }
+
+  @media (max-width: 600px) {
+    header, .filters-bar, main { padding-left: 20px; padding-right: 20px; }
+    .header-inner { flex-direction: column; }
+    .totals { justify-content: flex-start; }
+    .total-item { text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="header-label">Fraude à Execução · IDPJ · Executado: Dirceu Bergamin Junior</div>
+      <h1>Linha do Tempo — Execuções e Atos Societários</h1>
+      <p>Nov 2009 – Ago 2024 &nbsp;·&nbsp; Comarca de Lavras/MG &nbsp;·&nbsp; Clique em cada evento para análise jurídica</p>
+    </div>
+    <div class="totals">
+      <div class="total-item">
+        <div class="total-label">Total executado</div>
+        <div class="total-value" style="color:var(--red)">R$ 1.323.031,32</div>
+      </div>
+      <div class="total-item">
+        <div class="total-label">Processos</div>
+        <div class="total-value" style="color:var(--blue)">9</div>
+      </div>
+      <div class="total-item">
+        <div class="total-label">Alterações HAUSS</div>
+        <div class="total-value" style="color:var(--amber)">5</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="filters-bar">
+  <button class="filter-btn active" data-filter="all">Todos</button>
+  <button class="filter-btn" data-filter="proc"><span class="filter-dot dp"></span>Processos judiciais</button>
+  <button class="filter-btn f-alerta" data-filter="alerta"><span class="filter-dot da"></span>Atos societários</button>
+  <button class="filter-btn f-fraude" data-filter="fraude"><span class="filter-dot df"></span>Fraude / IDPJ</button>
+</div>
+
+<main>
+
+<!-- ══════════════════════════════════════════
+     FASE 1 — ORIGEM DO CNPJ
+════════════════════════════════════════════ -->
+<div class="fase-banner fase-1">
+  <div class="fase-dot"></div>
+  Fase 1 · Origem do CNPJ (2009) — Empresário individual que viria a se tornar a HAUSS BRASIL
+</div>
+
+<div class="year-block">
+  <div class="year-header"><span class="year-label">2009</span><div class="year-line"></div></div>
+  <div class="tl">
+
+    <div class="ev t-alerta" data-type="alerta">
+      <div class="ev-dot t-alerta"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">10 NOV 2009</div>
+            <div class="ev-title">Criação do Empresário Individual — Dirceu Bergamin Junior</div>
+            <div class="ev-proc">CNPJ 11.313.987/0001-10 · Origem da HAUSS BRASIL</div>
+          </div>
+          <div class="ev-right"><span class="ev-badge badge-blue">Marco inicial</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <div class="detail-text"><strong>Relevância central:</strong> O CNPJ 11.313.987/0001-10 aberto em 2009 como empresário individual de Dirceu Bergamin Junior é o mesmo CNPJ que, em jan/2023, será transformado na Sociedade Empresária Limitada HAUSS BRASIL. O vínculo entre o devedor pessoal e a empresa é, portanto, direto e ininterrupto desde a origem.</div>
+          </div>
+          <div class="detail-alert">⚠ A continuidade do CNPJ é prova material de que a HAUSS BRASIL não é uma empresa nova: é o próprio patrimônio empresarial de Dirceu revestido de nova forma jurídica com o objetivo de blindá-lo das execuções.</div>
+        </div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 2 — ACÚMULO DE DÍVIDAS (2022)
+════════════════════════════════════════════ -->
+<div class="fase-banner fase-2">
+  <div class="fase-dot"></div>
+  Fase 2 · Acúmulo de execuções (2022) — Dívidas se multiplicam enquanto atos societários se preparam
+</div>
+
+<div class="year-block">
+  <div class="year-header"><span class="year-label">2022</span><div class="year-line"></div></div>
+  <div class="tl">
+
+    <div class="ev t-proc" data-type="proc">
+      <div class="ev-dot t-proc"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">14 FEV 2022</div>
+            <div class="ev-title">ABA Material de Construção — Ação de Cobrança</div>
+            <div class="ev-proc">5000345-90.2022.8.13.0382</div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-valor v-blue">R$ 84.571,68</span>
+            <span class="ev-badge badge-blue">estes autos</span>
+          </div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div class="detail-text"><strong>Marco inicial das cobranças.</strong> Processo originário que, sem pagamento, evoluirá para cumprimento de sentença de R$ 435.847,15 em abr/2023 — crescimento de 415% em 14 meses.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-proc" data-type="proc">
+      <div class="ev-dot t-proc"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">27 MAI 2022</div>
+            <div class="ev-title">Cooperativa de Crédito — 1ª Execução</div>
+            <div class="ev-proc">5005065-03.2022.8.13.0382 · Circ. Campos das Vertentes</div>
+          </div>
+          <div class="ev-right"><span class="ev-valor v-blue">R$ 27.166,50</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <div class="detail-text">Primeira execução da cooperativa. A mesma credora ajuizará nova execução de <strong>R$ 87.589,71</strong> em dez/2022, demonstrando múltiplos vínculos de inadimplência com a mesma instituição.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-proc" data-type="proc">
+      <div class="ev-dot t-proc"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">18 NOV 2022</div>
+            <div class="ev-title">Locadora Lavras Ltda — Cumprimento de Sentença</div>
+            <div class="ev-proc">5006633-25.2020.8.13.0382</div>
+          </div>
+          <div class="ev-right"><span class="ev-valor v-red">R$ 155.184,75</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <div class="detail-text">Processo originário de <strong>2020</strong> chega à fase de cumprimento de sentença. A dívida subirá para R$ 187.773,22 em dez/2023. Este processo gerará o <strong>1º pedido formal de penhora</strong> em 19/12/2023 — 5 dias após Dirceu sair da HAUSS BRASIL.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-alerta" data-type="alerta">
+      <div class="ev-dot t-alerta"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">06 DEZ 2022</div>
+            <div class="ev-title">Baixa da KASA Franquias</div>
+            <div class="ev-proc">Encerramento do registro empresarial</div>
+          </div>
+          <div class="ev-right"><span class="ev-badge badge-amber">⚠ Ato societário</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <div class="detail-text">Encerramento da KASA Franquias, onde Jonatas Patrick era sócio de Dirceu. Ocorre no mesmo mês em que são ajuizadas mais 2 execuções. <strong>Jonatas reaparecerá como sócio na HAUSS BRASIL apenas 52 dias depois</strong>, em jan/2023.</div>
+          </div>
+          <div class="detail-alert">⚠ O grupo KASA e a HAUSS BRASIL possuem similaridade fonética com "HOUSE/HAUSS" (casa em inglês/alemão), sugerindo continuidade de marca e atividade empresarial sob nova roupagem jurídica.</div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-proc" data-type="proc">
+      <div class="ev-dot t-proc"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">14 DEZ 2022</div>
+            <div class="ev-title">Cooperativa de Crédito — 2ª Execução</div>
+            <div class="ev-proc">5011744-19.2022.8.13.0382 · Circ. Campos das Vertentes</div>
+          </div>
+          <div class="ev-right"><span class="ev-valor v-blue">R$ 87.589,71</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <div class="detail-text">Segunda execução da mesma cooperativa no mesmo ano. Valor <strong>3× superior</strong> à primeira. Quarta ação contra o executado em menos de 12 meses.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-alerta" data-type="alerta">
+      <div class="ev-dot t-alerta"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">20 DEZ 2022</div>
+            <div class="ev-title">Pagamento — última parcela do acordo com a Suscitante</div>
+            <div class="ev-proc">Quitação seletiva perante credor específico</div>
+          </div>
+          <div class="ev-right"><span class="ev-badge badge-blue">Ato relevante</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+            <div class="detail-text"><strong>Marco de inadimplência com a Suscitante:</strong> Este é o último pagamento em dia realizado pelos Executados perante a credora. A partir desta data, instala-se a inadimplência que origina a instauração do presente Incidente de Desconsideração da Personalidade Jurídica.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FASE 3 — BLINDAGEM PATRIMONIAL (2023–2024)
+════════════════════════════════════════════ -->
+<div class="fase-banner fase-3">
+  <div class="fase-dot"></div>
+  Fase 3 · Blindagem patrimonial (2023–2024) — Atos que configuram fraude à execução e embasam o IDPJ
+</div>
+
+<div class="year-block">
+  <div class="year-header"><span class="year-label">2023</span><div class="year-line"></div></div>
+  <div class="tl">
+
+    <div class="ev t-fraude" data-type="fraude">
+      <div class="ev-dot t-fraude"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">27 JAN 2023 — 1ª ALTERAÇÃO CONTRATO SOCIAL</div>
+            <div class="ev-title">Transformação em HAUSS BRASIL Ltda · Inclusão de Jonatas Patrick</div>
+            <div class="ev-proc">CNPJ 11.313.987/0001-10 · Mesmo CNPJ de Dirceu desde 2009</div>
+          </div>
+          <div class="ev-right"><span class="ev-badge badge-amber">⚠ Fraude — art. 792 CPC</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <div class="detail-text"><strong>Operação:</strong> O CNPJ pessoal de Dirceu (aberto em 2009) é transformado em Sociedade Empresária Limitada. Jonatas Patrick — sócio de Dirceu na KASA Franquias, encerrada apenas 52 dias antes — é incluído no quadro societário.</div>
+          </div>
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="detail-text"><strong>Equivalência fonética e de objeto:</strong> KASA (grupo anterior) e HAUSS (nova empresa) significam "casa" em línguas diferentes. O objeto social da HAUSS será ampliado em fev/2024 para abranger exatamente todos os serviços que o grupo KASA realizava.</div>
+          </div>
+          <div class="detail-danger">⛔ Ato praticado com ao menos 4 execuções em curso. Constitui alienação de patrimônio empresarial em fraude à execução (art. 792, IV CPC). A continuidade do CNPJ demonstra que não há criação genuína de nova empresa — há apenas revestimento formal do mesmo ativo.</div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-proc" data-type="proc">
+      <div class="ev-dot t-proc"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">03 ABR 2023</div>
+            <div class="ev-title">UNICRED Evolução Ltda — Execução</div>
+            <div class="ev-proc">5003494-60.2023.8.13.0382</div>
+          </div>
+          <div class="ev-right"><span class="ev-valor v-red">R$ 269.051,60</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <div class="detail-text">Terceira instituição financeira/cooperativa a executar o devedor. Maior valor individual até então: <strong>R$ 269.051,60</strong>. Ajuizada apenas 65 dias após a criação formal da HAUSS BRASIL.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-proc" data-type="proc">
+      <div class="ev-dot t-proc"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">12 ABR 2023</div>
+            <div class="ev-title">ABA Material de Construção — Cumprimento de Sentença</div>
+            <div class="ev-proc">5000345-90.2022.8.13.0382</div>
+          </div>
+          <div class="ev-right">
+            <span class="ev-valor v-red">R$ 435.847,15</span>
+            <span class="ev-badge badge-blue">estes autos</span>
+          </div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            <div class="detail-text">Cobrança de R$ 84.571,68 (fev/2022) evolui para cumprimento de sentença de <strong>R$ 435.847,15</strong> — crescimento de 415% em 14 meses sem pagamento. Há título judicial formado: possibilidade imediata de penhora e SISBAJUD.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-proc" data-type="proc">
+      <div class="ev-dot t-proc"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">29 SET 2023</div>
+            <div class="ev-title">Eletro Suli Ltda × KASA Construções, Gabriela e Dirceu</div>
+            <div class="ev-proc">5001129-67.2022.8.13.0382 · Cumprimento de sentença</div>
+          </div>
+          <div class="ev-right"><span class="ev-valor v-red">R$ 93.914,22</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <div class="detail-text"><strong>Polo passivo múltiplo:</strong> KASA Construções, Gabriela e Dirceu executados conjuntamente — demonstra que as empresas do grupo KASA e Dirceu pessoalmente são tratados como devedores solidários.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-proc" data-type="proc">
+      <div class="ev-dot t-proc"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">20 OUT 2023</div>
+            <div class="ev-title">Condenação da KASA Construções — Restituição</div>
+            <div class="ev-proc">5000725-87.2021.8.13.0499</div>
+          </div>
+          <div class="ev-right"><span class="ev-valor v-red">R$ 169.707,50</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+            <div class="detail-text">Nova condenação gera novo título executivo. Em apenas <strong>55 dias</strong> após esta sentença, Dirceu e Jonatas sairão do quadro societário da HAUSS BRASIL e transferirão as cotas ao irmão Gilberto.</div>
+          </div>
+          <div class="detail-danger">⛔ O nexo temporal é inequívoco: nova condenação → imediata movimentação societária para esvaziamento da empresa.</div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-fraude" data-type="fraude">
+      <div class="ev-dot t-fraude"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">14 DEZ 2023 — 2ª ALTERAÇÃO CONTRATO SOCIAL</div>
+            <div class="ev-title">Saída de Dirceu e Jonatas · Transferência de cotas ao irmão Gilberto Bergamin</div>
+            <div class="ev-proc">HAUSS BRASIL · 55 dias após condenação / 5 dias antes da 1ª penhora</div>
+          </div>
+          <div class="ev-right"><span class="ev-badge badge-amber">⚠ Fraude — art. 792 CPC</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="detail-text"><strong>Fraude à execução (art. 792, IV CPC):</strong> Transferência das cotas a familiar (irmão) quando já corriam múltiplas execuções. Ato presumidamente fraudulento — a ineficácia independe de prova de má-fé.</div>
+          </div>
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+            <div class="detail-text"><strong>Responsabilidade de Gilberto (art. 790, IV CPC):</strong> Adquirente das cotas pode ser chamado ao processo como responsável patrimonial, ficando sujeito à penhora das cotas recebidas.</div>
+          </div>
+          <div class="detail-danger">⛔ Cronologia que prova o dolo: condenação KASA (20/10) → saída de Dirceu da HAUSS (14/12) → 1º pedido de penhora da Locadora (19/12). Três marcos em 60 dias.</div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-proc" data-type="proc">
+      <div class="ev-dot t-proc"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">19 DEZ 2023</div>
+            <div class="ev-title">Locadora Lavras Ltda — 1º Pedido de Penhora</div>
+            <div class="ev-proc">5006633-25.2020.8.13.0382 · 5 dias após saída de Dirceu da HAUSS</div>
+          </div>
+          <div class="ev-right"><span class="ev-valor v-red">R$ 187.773,22</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <div class="detail-text">Primeiro pedido formal de penhora <strong>neste processo</strong> (5006633-25.2020.8.13.0382). Dívida cresceu 21% em 13 meses sem pagamento (de R$ 155.184,75 para R$ 187.773,22). Ocorre apenas <strong>5 dias</strong> após Dirceu transferir suas cotas da HAUSS BRASIL.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /2023 -->
+
+<div class="year-block">
+  <div class="year-header"><span class="year-label">2024</span><div class="year-line"></div></div>
+  <div class="tl">
+
+    <div class="ev t-fraude" data-type="fraude">
+      <div class="ev-dot t-fraude"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">02 FEV 2024 — 3ª ALTERAÇÃO CONTRATO SOCIAL</div>
+            <div class="ev-title">Ampliação do objeto social da HAUSS BRASIL</div>
+            <div class="ev-proc">Passa a abranger todos os serviços que o grupo KASA realizava</div>
+          </div>
+          <div class="ev-right"><span class="ev-badge badge-amber">⚠ Ato relevante</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div class="detail-text"><strong>Prova de continuidade empresarial:</strong> A HAUSS BRASIL passa a ter formalmente o mesmo objeto social do grupo KASA — confirmando que não se trata de empresa nova, mas da continuação da atividade econômica do executado sob nova forma jurídica.</div>
+          </div>
+          <div class="detail-alert">⚠ Este ato é peça central para o IDPJ: o objeto social da HAUSS passa a contemplar formalmente todas as atividades que o grupo KASA exercia, evidenciando a continuidade funcional entre as empresas executadas e a nova sociedade.</div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-fraude" data-type="fraude">
+      <div class="ev-dot t-fraude"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">02 ABR 2024 — 4ª ALTERAÇÃO CONTRATO SOCIAL</div>
+            <div class="ev-title">Entrada da ATLAS PARTICIPAÇÃO LTDA como sócia majoritária</div>
+            <div class="ev-proc">Transferência de cotas — nova interposição de pessoa jurídica</div>
+          </div>
+          <div class="ev-right"><span class="ev-badge badge-red">⛔ Alerta crítico</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <div class="detail-text"><strong>Nova camada de blindagem:</strong> Após Gilberto Bergamin (irmão) receber as cotas de Dirceu, uma pessoa jurídica — ATLAS PARTICIPAÇÃO LTDA — entra como sócia majoritária. Interposição de PJ torna ainda mais difícil o rastreamento patrimonial.</div>
+          </div>
+          <div class="detail-danger">⛔ A cadeia de transferências (Dirceu → Gilberto → ATLAS) é padrão textbook de blindagem patrimonial fraudulenta, embasando IDPJ com extensão a todos os elos da cadeia.</div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-fraude" data-type="fraude">
+      <div class="ev-dot t-fraude"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">16 ABR 2024</div>
+            <div class="ev-title">Gilberto vende cotas à ATLAS · Permanece sócio · Eleito Diretor sem designação específica</div>
+            <div class="ev-proc">HAUSS BRASIL · Gilberto mantém vínculo societário e assume cargo de gestão</div>
+          </div>
+          <div class="ev-right"><span class="ev-badge badge-amber">⚠ Ato relevante</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="detail-text">Gilberto Bergamin transfere suas cotas à ATLAS PARTICIPAÇÃO LTDA, que passa a ser a sócia majoritária da HAUSS BRASIL. Gilberto, no entanto, <strong>permanece no quadro societário</strong> como sócio minoritário e, na mesma ocasião, é eleito <strong>Diretor sem designação específica</strong> — mantendo assim assento na administração da empresa.</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ev t-fraude" data-type="fraude">
+      <div class="ev-dot t-fraude"></div>
+      <div class="ev-card" onclick="toggle(this)">
+        <div class="ev-head">
+          <div class="ev-meta">
+            <div class="ev-date">02 AGO 2024 — 4ª E 5ª ALTERAÇÕES CONTRATO SOCIAL</div>
+            <div class="ev-title">Dirceu eleito Diretor-Presidente exclusivo da HAUSS BRASIL</div>
+            <div class="ev-proc">Controle integral sem cotas · Dois diretores sem designação destituídos (inclusive Gilberto) · Dirceu administra sozinho</div>
+          </div>
+          <div class="ev-right"><span class="ev-badge badge-red">⛔ Fraude — IDPJ</span></div>
+          <span class="ev-chevron">›</span>
+        </div>
+        <div class="ev-detail"><div class="ev-detail-inner">
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <div class="detail-text"><strong>Culminação da fraude:</strong> Dirceu Bergamin — que formalmente não possui nenhuma cota da HAUSS BRASIL desde dez/2023 — é eleito <strong>Diretor-Presidente com poderes exclusivos e integrais</strong> de representação e gestão. Passa a ter autonomia individual para administrar todos os negócios e assinar contratos até R$ 100.000,00.</div>
+          </div>
+          <div class="detail-row">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="detail-text"><strong>Simultaneamente:</strong> os dois Diretores sem designação específica — sendo <strong>Gilberto Bergamin um deles</strong> — são destituídos de seus cargos. A administração, que antes era exercida de forma conjunta pela Diretoria, passa a ser exercida de forma <strong>individual e exclusiva pelo Diretor-Presidente</strong>: Dirceu Bergamin.</div>
+          </div>
+          <div class="detail-danger">⛔ FRAUDE CONSUMADA: Dirceu exerce controle total e exclusivo da HAUSS BRASIL sem nenhuma cota em seu nome. A separação entre titularidade formal e controle real é o elemento central do IDPJ — o art. 50 do CC exige exatamente a demonstração desse desvio de finalidade e abuso da personalidade jurídica. A empresa opera como extensão do patrimônio pessoal do executado, mascarada sob camadas sucessivas de transferências societárias.</div>
+        </div></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /2024 -->
+
+<!-- ══════ SUMÁRIO ══════ -->
+<div class="summary-box">
+  <h2>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="flex-shrink:0"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    Visão geral
+  </h2>
+  <div class="summary-grid">
+    <div class="stat-card"><div class="stat-label">Total executado</div><div class="stat-value sv-red">R$ 1,32 M</div></div>
+    <div class="stat-card"><div class="stat-label">Processos</div><div class="stat-value sv-blue">9</div></div>
+    <div class="stat-card"><div class="stat-label">Alterações HAUSS</div><div class="stat-value sv-amber">5</div></div>
+    <div class="stat-card"><div class="stat-label">Credores distintos</div><div class="stat-value sv-blue">6</div></div>
+    <div class="stat-card"><div class="stat-label">Anos de blindagem</div><div class="stat-value sv-green">2022–2024</div></div>
+  </div>
+
+  <div class="alerta-list">
+    <div class="alerta-item"><span class="alerta-num">01</span><span><strong style="color:var(--text)">Continuidade do CNPJ (2009→2023):</strong> A HAUSS BRASIL não é empresa nova — é o CNPJ pessoal de Dirceu desde 2009, revestido de nova forma jurídica com inclusão de sócios laranjas para dificultar penhora de cotas.</span></div>
+    <div class="alerta-item"><span class="alerta-num">02</span><span><strong style="color:var(--text)">Continuidade de marca e objeto:</strong> KASA (casa) → HAUSS (haus = casa em alemão). O objeto social foi formalmente equiparado ao do grupo KASA em fev/2024, confirmando que a HAUSS assumiu o fundo de comércio das empresas executadas.</span></div>
+    <div class="alerta-item"><span class="alerta-num">03</span><span><strong style="color:var(--text)">Cadeia de transferências fraudulentas:</strong> Dirceu → irmão Gilberto (dez/2023) → ATLAS PARTICIPAÇÃO (abr/2024). Cada transferência afasta formalmente o executado da titularidade das cotas, mas Dirceu retorna ao controle como Diretor-Presidente exclusivo em ago/2024.</span></div>
+    <div class="alerta-item"><span class="alerta-num">04</span><span><strong style="color:var(--text)">Controle sem titularidade = desvio de finalidade:</strong> Em ago/2024, Dirceu assume controle total e exclusivo da HAUSS BRASIL sem ter nenhuma cota — exatamente o que o art. 50 do CC define como abuso da personalidade jurídica para fins de IDPJ.</span></div>
+    <div class="alerta-item"><span class="alerta-num">05</span><span><strong style="color:var(--text)">Nexos temporais inequívocos:</strong> Cada ato societário de blindagem ocorre imediatamente após nova execução, condenação ou pedido de penhora — afastando qualquer tese de casualidade e demonstrando o dolo específico exigido para fraude à execução.</span></div>
+  </div>
+</div>
+
+<!-- ══════ IDPJ BOX ══════ -->
+<div class="idpj-box">
+  <h3>⚖ Fundamentos para o IDPJ — Art. 50 CC · Art. 133 CPC</h3>
+  <div class="idpj-grid">
+    <div class="idpj-item"><span class="idpj-mark">›</span><span><strong>Desvio de finalidade:</strong> A HAUSS BRASIL foi instrumentalizada para continuar a atividade econômica do grupo KASA enquanto suas dívidas ficavam formalmente em nome das empresas extintas e do executado pessoal.</span></div>
+    <div class="idpj-item"><span class="idpj-mark">›</span><span><strong>Confusão patrimonial:</strong> Mesmo CNPJ de Dirceu, mesmo sócio (Jonatas), mesmo objeto social, mesma marca fonética — os patrimônios pessoal e empresarial jamais foram efetivamente separados.</span></div>
+    <div class="idpj-item"><span class="idpj-mark">›</span><span><strong>Fraude à execução (art. 792 CPC):</strong> Todas as transferências de cotas ocorreram com processos em curso, configurando atos ineficazes perante os credores — as cotas podem ser penhoradas como se ainda pertencessem ao executado.</span></div>
+    <div class="idpj-item"><span class="idpj-mark">›</span><span><strong>Extensão aos terceiros (art. 790, IV CPC):</strong> Gilberto Bergamin e a ATLAS PARTICIPAÇÃO LTDA, como adquirentes de cotas transferidas em fraude, são responsáveis patrimoniais e devem integrar o polo passivo do incidente.</span></div>
+    <div class="idpj-item"><span class="idpj-mark">›</span><span><strong>Retorno oculto ao controle:</strong> A eleição de Dirceu como Diretor-Presidente exclusivo em ago/2024 — após cadeia de transferências — é prova definitiva de que a personalidade jurídica da HAUSS foi usada como escudo, não como instrumento legítimo de organização empresarial.</span></div>
+  </div>
+</div>
+
+</main>
+
+<script>
+  function toggle(card) {
+    const detail = card.querySelector('.ev-detail');
+    const isOpen = card.classList.contains('expanded');
+    card.classList.toggle('expanded', !isOpen);
+    detail.classList.toggle('open', !isOpen);
+  }
+
+  const btns = document.querySelectorAll('.filter-btn');
+  const evs  = document.querySelectorAll('.ev');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      evs.forEach(ev => {
+        const t = ev.dataset.type;
+        const show = f === 'all'
+          || (f === 'proc'   && t === 'proc')
+          || (f === 'alerta' && t === 'alerta')
+          || (f === 'fraude' && (t === 'fraude' || t === 'alerta'));
+        ev.classList.toggle('hidden', !show);
+      });
+    });
+  });
+
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const pct = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+  });
+</script>
+</body>
+</html>
